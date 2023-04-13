@@ -37,12 +37,14 @@ func (qu *Queue) Pop(name string, w http.ResponseWriter) {
 
 	tmp, ok := qu.hashmap[name]
 	if !ok || len(tmp) == 0 {
+		w.WriteHeader(http.StatusNoContent)
 		fmt.Fprint(w, "null")
 		return
 	}
 	data := tmp[len(tmp)-1]
 	tmp = tmp[:len(tmp)-1]
 	qu.hashmap[name] = tmp
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, data)
 }
 
@@ -62,18 +64,21 @@ func (qu *Queue) BPop(name string, duration int, w http.ResponseWriter) {
 				data := tmp1[len(tmp1)-1]
 				tmp1 = tmp1[:len(tmp1)-1]
 				qu.hashmap[name] = tmp1
+				w.WriteHeader(http.StatusOK)
 				fmt.Fprint(w, data)
 				return
 			}
 			qu.lock.Unlock()
 		}
 		// if still no push operation then return null
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprint(w, "null")
 		return
 	}
 	data := tmp[len(tmp)-1]
 	tmp = tmp[:len(tmp)-1]
 	qu.hashmap[name] = tmp
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, data)
 }
 
@@ -88,6 +93,7 @@ func QPush(cmd []string, w http.ResponseWriter) {
 	}
 
 	queue.Push(cmd[1], newQueue)
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, "ok")
 
 }
